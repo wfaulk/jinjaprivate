@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.28.1/full/pyodide.js"></script>
+</head>
+<body>
+Jinja template:<br />
+<textarea style="width:100%; height:300px;" id="template"></textarea>
+Data (JSON or YAML):<br />
+<textarea style="width:100%; height:300px;" id="data"></textarea>
+<button id="format" onclick="format()" disabled>Wait</button>
+<hr />
+Output:<br />
+<textarea style="width:100%; height:300px;" id="output" readonly></textarea>
+<script type="text/javascript">
+  let formatJinja = () => {};
+  const format = () => {
+    const template = document.getElementById("template").value;
+    const data = document.getElementById("data").value;
+    document.getElementById("output").value = formatJinja(template,data);
+  };
+  async function init() {
+    const pyodide = await loadPyodide();
+    await pyodide.loadPackage("jinja2");
+    await pyodide.loadPackage("pyyaml");
+    await pyodide.loadPackage("micropip");
+    await pyodide.pyimport("micropip").install("jinja2_ansible_filters");
+    formatJinja = pyodide.runPython(`
+        from jinja2 import Environment
+        from jinja2.exceptions import TemplateSyntaxError as jx_TemplateSyntaxError
+        from jinja2_ansible_filters import AnsibleCoreFiltersExtension
+        from yaml import load
+        from yaml.scanner import ScannerError as yx_ScannerError
+        try:
+          from yaml import CLoader as Loader
+        except ImportError:
+          from yaml import Loader
+
+        def format_jinja(template, data):
+          try:
+            parseddata = load(data, Loader=Loader);
+          except Exception as e:
+            return "Couldn't parse data:\\n" + str(e)
+          if (parseddata is None):
+            parseddata = []
+          try:
+            return Environment(extensions=[AnsibleCoreFiltersExtension]).from_string(template).render(parseddata)
+          except jx_TemplateSyntaxError as e:
+            return "Jinja Syntax Error:\\n" + str(e)
+          except yx_ScannerError as e:
+            return "YAML Scanner Error:\\n" + str(e)
+          except Exception as e:
+            return "Unknown Error:\\n" + str(e)
+
+        format_jinja
+      `);
+    document.getElementById("format").innerText = "Format";
+    document.getElementById("format").disabled = false;
+  }
+  init();
+</script>
+</body>
