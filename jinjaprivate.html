@@ -2,17 +2,33 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<style>
+  textarea {
+    width: 99%;
+    height: 25vh;
+    display: block;
+  }
+</style>
 <script src="https://cdn.jsdelivr.net/pyodide/v0.28.1/full/pyodide.js"></script>
 </head>
 <body>
-Jinja template:<br />
-<textarea style="width:99%; height:25vh;" id="template"></textarea><br />
-Data (JSON or YAML):<br />
-<textarea style="width:99%; height:25vh;" id="data"></textarea><br />
-<button id="format" onclick="format()" disabled>Wait</button>
+<div>
+<div>Jinja template:</div>
+<textarea id="template"></textarea>
+</div>
+<div>
+<div>Data (JSON or YAML):<div>
+<textarea id="data"></textarea>
+</div>
+<div>
+<button id="formatBtn" onclick="format()" disabled>Wait</button>
+</div>
 <hr />
-Output:<br />
-<textarea style="width:99%; height:25vh;" id="output" readonly></textarea>
+<div>
+<div>Output:</div>
+<textarea id="output" readonly></textarea>
+</div>
+
 <script type="text/javascript">
   let formatJinja = () => {};
   const format = () => {
@@ -21,6 +37,8 @@ Output:<br />
     document.getElementById("output").value = formatJinja(template,data);
   };
   async function init() {
+    document.getElementById("formatBtn").innerText = "Wait";
+    document.getElementById("formatBtn").disabled = true;
     const pyodide = await loadPyodide();
     await pyodide.loadPackage("jinja2");
     await pyodide.loadPackage("pyyaml");
@@ -55,9 +73,10 @@ Output:<br />
 
         format_jinja
       `);
-    document.getElementById("format").innerText = "Format";
-    document.getElementById("format").disabled = false;
+    document.getElementById("formatBtn").innerText = "Format";
+    document.getElementById("formatBtn").disabled = false;
   }
   init();
 </script>
+
 </body>
