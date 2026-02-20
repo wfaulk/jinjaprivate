@@ -63,7 +63,9 @@
           if (parseddata is None):
             parseddata = []
           try:
-            return Environment(extensions=[AnsibleCoreFiltersExtension]).from_string(template).render(parseddata)
+            env = Environment(trim_blocks=True, lstrip_blocks=False, extensions=[AnsibleCoreFiltersExtension])
+            env.tests["contains"] = lambda c, i: i in c # Not in AnsibleCoreFiltersExtension
+            return env.from_string(template).render(parseddata)
           except jx_TemplateSyntaxError as e:
             return "Jinja Syntax Error:\\n" + str(e)
           except yx_ScannerError as e:
