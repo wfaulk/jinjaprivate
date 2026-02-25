@@ -65,6 +65,7 @@
           try:
             env = Environment(trim_blocks=True, lstrip_blocks=False, extensions=[AnsibleCoreFiltersExtension])
             env.tests["contains"] = lambda c, i: i in c # Not in AnsibleCoreFiltersExtension
+            env.filters["split"] = lambda i, d=None: i.split(d)
             return env.from_string(template).render(parseddata)
           except jx_TemplateSyntaxError as e:
             return "Jinja Syntax Error:\\n" + str(e)
